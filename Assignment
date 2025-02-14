@@ -1,7 +1,16 @@
 // Use Case 1 - Hello User
 // Write a code that says hello to folks via their name
-
-//Code
 String username;
 username = 'Stephanie';
 System.debug('Hello '+username);
+
+//Use Case 2 - List Variable
+//Create an empty integer List variable in Apex and then add values as it members. Next, display the List variable
+List<Integer> intlist = new List<Integer>();
+intlist.add(1);
+intlist.add(2);
+intlist.add(3);
+intlist.add(4);
+intlist.add(5);
+
+System.debug(intlist);
