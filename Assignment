@@ -1,11 +1,9 @@
-// Use Case 1 - Hello User
-// Write a code that says hello to folks via their name
+//Use Case 1 
 String username;
 username = 'Stephanie';
 System.debug('Hello '+username);
 
-//Use Case 2 - List Variable
-//Create an empty integer List variable in Apex and then add values as it members. Next, display the List variable
+//Use Case 2 
 List<Integer> intlist = new List<Integer>();
 intlist.add(1);
 intlist.add(2);
@@ -14,13 +12,11 @@ intlist.add(4);
 intlist.add(5);
 System.debug(intlist);
 
-//Use Case 3 - List Variable with Initial Assignment
-//Create an integer List variable in Apex with its members defined upon declaration and then display the List variable
+//Use Case 3 
 List<Integer> intlist = new List<Integer>{2,4,6,8};
 System.debug(intlist);
 
-//Use Case 4 - Set Variable
-//Create an empty integer Set variable in Apex and then add values as it members. Next, display the List variable
+//Use Case 4 
 Set<Integer> intset = new Set<Integer>();
 intset.add(3);
 intset.add(6);
@@ -29,30 +25,58 @@ intset.add(12);
 intset.add(15);
 System.debug(intset);
 
-//Use Case 5 - Set Variable with Initial Assignment
-//Create an integer Set variable in Apex with its members defined upon declaration and then display the Set variable
+//Use Case 5
 Set<Integer> intset = new Set<Integer>{2,4,6,8,10,12,14};
 System.debug(intset);
 
-/*Use Case 6 - List Variables with Members Manipulation
-Create a string List variable with 10 members defined when it declared then
-• Display all the elements of the List variable
-• Display the size of the List variable
-• Display the 7th member of the List variable */
+//Use Case 6 
 List<String> words = new List<String>{'Axe','Ace','Bat','Bed','Bee','Bun','Cat','Cup','Cut','Day'};
 System.debug(words);
 System.debug(words.size());
 System.debug(words[7]);
 
-/*Use Case 7 - Set Variables with Members Manipulation
-Create a string Set variable with 11 members defined when it declared then
-• Display all the elements of the Set variable
-• Display the size of the Set variable
-• Display the 7th member of the Set variable */
+//Use Case 7 
 Set<String> words = new Set<String>{'Axe','Ace','Bat','Bed','Bee','Bun','Cat','Cup','Cut','Day','Dog'};
 System.debug(words);
 System.debug(words.size());
 
+//Use Case 8
+Map<Integer, String> exmap = new Map<Integer, String>();
+exmap.put(1,'Bat');
+exmap.put(2,'Cat');
+exmap.put(3,'Bag');
+System.debug(exmap);
+
+//Use Case 9
+Map<Integer, String> exmap = new Map<Integer, String>{1 => 'Bat', 2 => 'Cat', 3 => 'Bag', 4 => 'Dog'};
+System.debug(exmap);
+
+//Use Case 10
+Map<Integer, String> fruitmap = new Map<Integer, String>{1 => 'Apples', 2 => 'Bananas', 3 => 'Mangoes', 4 => 'Oranges'};
+System.debug(fruitmap);
+System.debug(fruitmap.size());
+System.debug(fruitmap.get(3));
+
+//Use Case 11
+List<Integer> numlist = new List<Integer>();
+ Integer x = 1;
+Do {
+  numlist.add(x);
+    x++;
+    
+}
+While (x <= 20);
+
+System.debug(numlist);
+
+//Use Case 12
+List<Integer> intlist = new List<Integer>{3,5,7,9,11,13};
+Integer x = intlist.size();
+System.debug(x);
+Do{
+    System.debug(intlist);
+}
+While (x < 5);
 
 
 
