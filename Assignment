@@ -1,0 +1,7 @@
+// Use Case 1 - Hello User
+// Write a code that says hello to folks via their name
+
+//Code
+String username;
+username = 'Stephanie';
+System.debug('Hello '+username);
