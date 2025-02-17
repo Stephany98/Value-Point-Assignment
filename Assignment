@@ -78,5 +78,93 @@ Do{
 }
 While (x < 5);
 
+//Use Case 13
+Set<Integer> numset = new Set<Integer>();
+Integer x = 0;
+System.debug(numset);
 
+While (x < 40){
+numset.add(x);
+x+= 2;
+}
+System.debug('The size of the set is '+ numset.size());
+System.debug(numset);
+
+//Use Case 14
+List<Integer> intlist = new List<Integer>{1,2,3,4,5};
+System.debug(Intlist);
+
+List<Integer> intlist2 = new List<Integer>();
+
+For (Integer i : intlist){
+Integer x = 5 * i;
+intlist2.add(x);
+}
+
+intlist.clear();
+System.debug(Intlist);
+
+intlist.addAll(intlist2);
+System.debug(Intlist);
+
+//Use Case 15
+String[] myarray = new String[]{'Jeff','Macky','Tobi','Droy','Nate','Steph','Ada','Billy','Jet','Levy'};
+System.debug(myarray);
+For(String a : myarray){
+System.debug('Hello '+ a);
+}
+
+//Use Case 16
+List<Account> accts = new List<Account>();
+accts = [SELECT Id, Name, Description FROM Account];
+System.debug(accts);
+For(Account a : accts){
+If(a.Description == null){
+a.Description = 'Needs attention';
+System.debug(a);
+}
+}
+//update accts;
+
+//Use Case 17
+Integer weather = 60;
+If(weather < 60){
+System.debug('It is a cold day!!!');
+}
+Else If(weather == 60){
+System.debug('It is a great weather day!!!');
+}
+Else{
+System.debug('It is a warm day!!!');
+}
+
+//Use Case 18 
+List<Integer> oddnum = new List<Integer>();
+List<Integer> evennum = new List<Integer>();
+
+For (Integer i = 0 ; i <= 20; i++){
+If(Math.mod(i,2)== 1){
+oddnum.add(i);
+}
+Else{
+evennum.add(i);
+}
+}
+System.debug(oddnum);
+System.debug(evennum);
+
+//Use Case 19
+String Country = 'Nigeria';
+
+Switch on Country{
+when 'Nigeria'{
+System.debug('Nigeria is a country in Africa!!!');
+}
+when 'USA'{
+System.debug('USA is a country in North America!!!');
+}
+when else{
+System.debug('I don\'t know the continent of the country in question!!!');
+}
+}
 
