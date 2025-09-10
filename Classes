@@ -1,1 +1,230 @@
+ 
+Extend Apex Class Use Case
+Create virtual class that returns the product of two numbers and display the output. Create another class that extends the method in the class created earlier, returns the division of parameters and display the output.
+ 
+Implement Apex Class Use Case
+Create an interface class that requires all implementing classes to specify single and bulk discounts. Then create an implementing class that offers an 8% discount for single and 25% discount for double.
+ 
+Trigger as Delegator to Apex Class
+Update the Account description to read, “Welcome this customer to the firm. Also, schedule a monthly follow-up with this customer”, whenever an Account record is created. The trigger should pass the records to an Apex class that handles all the logic
+ 
+Avoid Recursive Apex Trigger Use Case
+Populate Account Number and Description whenever an Account record is created or updated if they are null. Add a Contact record if it has none exist
+Create a Class with a Set of Ids collection
+Create an Apex Class that references the collection above and perform the logic
+Create a Trigger that calls the class above and passes the records to be processed 
+
+Write Test Classes for Apex
+Write an Apex Class that takes two numbers, displays their division, and return their division. Then write a test class with 100% code coverage
+ 
+Use @testSetup in Test Classes 
+When a Contact record is missing a Title, Department or Description, update them to the following
+Title: Unknown Title
+Department: Needs to be assigned a department
+Description: Welcome to Value Point
+Write a test class with @testSetup method with 100% code coverage
+ 
+Use Test Factory in Test Classes 
+When a Contact record is missing a Title, Department or Description, update them to the following
+Title: Unknown Title
+Department: Needs to be assigned a department
+Description: Welcome to Value Point
+Write a test class with Testfactory method with 100% code coverage
+ 
+Write Test Classes for Private Methods
+Write an Apex class with a private method that takes a collection of integers and return an average decimal output of that collection. Then write a test class for the private method that covers 100% of the code
+
+Use @istest (SeeAlldata=True) at Class Level in Test Classes 
+Whenever a Case record is created without Description and Engineering Req Number fields, populate those fields with the following
+Description: Needs ticket details
+Engineering Req Number: Unknown
+Also, write a test class with 100% code coverage that use @isTest (SeeAllData = True) at the class level      
+ 
+Use @istest (SeeAlldata=True) at Method Level in Test Classes 
+Whenever a Case record is created without Description and Engineering Req Number fields, populate those fields with the following
+Description: Needs ticket details
+Engineering Req Number: Unknown
+Also, write a test class with 100% code coverage that use @isTest (SeeAllData = True) at the method level 
+
+Use a Batch Class for Bulk processing - Use Case # 1
+Create a Custom object with the following to track Production Management
+Product – Record Name (Auto Number) with PM-{0000} format
+Scheduled Start Date: Date and make it required
+Due Date: Date
+Production Date: Date
+Description: Text Area (255)
+Status: Use ‘Not Started’, ‘In Progress’, and ‘Closed’ picklist values with ‘Not Started’ as the default value
+Enable Field History tracking for all the trackable fields above
+Create 1000 Production Management records via a for loop script with the following details
+Scheduled Start Date: Today
+Description: ‘Urgent production request’
+Create and run a Batch Apex job that makes the following updates to Production Management records whose Due Date are blank
+Due Date: Today + 7
+Status: In Progress
+
+Use a Batch Class for Bulk processing - Use Case # 2
+Create and run a Batch Apex job that makes the following updates to Production Management records (Created in the above use case) whose Status are ‘In Progress’
+Production Date: Today
+Status: Closed
+The Batch job should also display the number of records processed
+Check the system to see if the number records the Batch job claimed it processed matches those actually updated in the system
+ 
+Use Schedule Class for Scheduled Processing 
+Write a Scheduled Apex Class that updates all Production Management records’ Description field value to ‘Production complete’. Invoke the Scheduled Job to run at any time.
+ 
+Use Schedule Class to invoke Batch Class
+Write a batch job that runs daily at 9PM local time and searches for the newly created accounts. 
+The job then sums the amount field value on every Opportunity for all the Opportunities and updates it on the respective Pipeline Amount field on the respective parent account record of  those Opportunity
+
+Insert Account & Opportunity Records
+List <Account> acctList = new List <Account> ();
+List <Opportunity> opptyList = new List <Opportunity> ();
+integer z = 3000;
+for (integer i=1; i < = 1000; i++) {
+   acctList.add (new Account (Name = 'Value Point – 05-28-2025 ' +i));
+}
+insert acctList;
+ 
+List <Opportunity> opptyList = new List <Opportunity> ();
+integer z = 3000;
+List <Account> acctList = [SELECT Id, Name FROM Account WHERE CreatedDate = Today Limit 200];
+ 
+for (Account a: acctList) {
+   for (integer j=1; j < = 6; j++) {
+      opptyList.add (new Opportunity (Name= 'Value Point – 05-28-2025 ' + j + ' Opportunity',
+                     Amount = z + j,
+                     AccountId = a.Id,
+                     StageName = 'Prospecting',
+                     CloseDate = Date.today() +7));
+   }   
+}
+insert opptyList;
+ 
+Apex Batch Class
+global class UpdateAccountAmount implements Database.Batchable <sobject>, Database.Stateful{
+  
+   integer countProcessedRecords =0;
+  
+   global Database.QueryLocator start (Database.BatchableContext bc) {
+               system.debug ('START METHOD: The Batch process just began');
+       return Database.getQueryLocator ('SELECT Id, Name, AccountId, Amount FROM Opportunity');
+   }
+  
+   global void execute (Database.BatchableContext bc, List <Opportunity> opptyList){
+       system.debug ('EXECUTE METHOD: The Batch process is processing records');
+       Map <Id, Decimal> AccountIdWithOpportunity = new Map <Id, Decimal> ();
+       for (Opportunity oppty: opptyList) {
+           if (oppty.AccountId != null) {
+             if(AccountIdWithOpportunity.containsKey (oppty.AccountId)){
+              AccountIdWithOpportunity.put(oppty.AccountId, AccountIdWithOpportunity.get(oppty.AccountId) + oppty.Amount);
+               }
+               else{
+                  AccountIdWithOpportunity.put(oppty.AccountId, oppty.Amount);
+               }
+           }
+          
+       }
+       List <Account> acctList = new List <Account> ();
+       for (Id myId: AccountIdWithOpportunity.KeySet()){
+           acctList.add(new Account (Id = myId, Pipeline_Amount__c= AccountIdWithOpportunity.get (myId)));
+       }
+       if (acctList.size() > 0) {
+           update acctList;
+           countProcessedRecords = acctList.size();
+       }
+   }
+  
+   global void finish (Database.BatchableContext bc) {
+       system.debug ('FINISH METHOD: The total number of Accounts processed: ' + countProcessedRecords);
+       system.debug ('FINISH METHOD: The Batch process is complete');
+   }
+ 
+}
+ 
+Apex Scheduled Class
+global class ScheduledUpdateAccountPipelineAmount implements Schedulable {
+  
+   global void execute (SchedulableContext Sc) {
+      
+      system.debug ('SCHEDULE EXECUTE METHOD: The Schedule job has started executing');
+      UpdateAccountAmount uaa = new UpdateAccountAmount ();
+      Database.executebatch (uaa, 200);
+   }
+ 
+}
+
+Use Future Method for Use Case # 1
+Write a Future method which takes a string as input parameter and displays the string prefixed with ‘Hello’. Then invoke the future method and check the output
+ 
+Use Future Method for Use Case # 2
+Write an Apex Class with the following 3 Future Methods
+Future method # 1:  Takes no argument. Displays the sum of 67 and 53
+Future method # 2: Takes no argument. Displays ‘This is the 2nd Future method output’
+Future method # 3: Takes no argument. Displays ‘This is the 3nd Future method output. You did it.’
+Write another method in the same class that calls the 3 future methods in the order listed below
+Future method # 1
+Future method # 2
+Future method # 3
+Then invoke the future method and check the output
+ 
+Use Future Method for Use Case # 3
+Write an Apex Class to update your user record role to ‘CEO’ and update any of your Account records whose Description is null, to read ‘Needs description’. Use @future method in the implementation
+Tip: Use @future method for the Account record update
+
+Hi Stephanie Okeke,
+ 
+Here are more use cases for Asynchronous Apex
+Future Methods
+ 
+Use Future Method for Use Case # 1
+Write a Future method which takes a string as input parameter and displays the string prefixed with ‘Hello’. Then invoke the future method and check the output
+ 
+Use Future Method for Use Case # 2
+Write an Apex Class with the following 3 Future Methods
+Future method # 1:  Takes no argument. Displays the sum of 67 and 53
+Future method # 2: Takes no argument. Displays ‘This is the 2nd Future method output’
+Future method # 3: Takes no argument. Displays ‘This is the 3nd Future method output. You did it.’
+Write another method in the same class that calls the 3 future methods in the order listed below
+Future method # 1
+Future method # 2
+Future method # 3
+Then invoke the future method and check the output
+ 
+Use Future Method for Use Case # 3
+Write an Apex Class to update your user record role to ‘CEO’ and update any of your Account records whose Description is null, to read ‘Needs description’. Use @future method in the implementation
+Tip: Use @future method for the Account record update
+ 
+ 
+Queueable Apex
+Use Queueable Apex for Use Case # 1
+Write a Queueable Apex that fetches and updates Contacts
+If Email is null, set it to ‘missingemail@vp.com’
+If Description is null, set it to ‘New Contact’
+Invoke the Queueable Apex and store the Job Id.
+Also, display the job Id
+Query for the Status of the queued job
+Inspect the output
+ 
+Use Queueable Apex for Use Case # 2
+Write a Queueable Apex, let’s call it SecondQueueable
+That fetches Opportunity records whose Stages are ‘Closed Won’ and Descriptions are ‘Closed today: ’ + [Today’s Date]
+Then, creates a Task for each fetched Opportunity record with the following details
+Subject: [Opportunity Name] + ‘ Task’
+Status: ‘Completed’
+Description: ‘Closed due to ’  +  [Opportunity Name] + ‘ closure.’
+WhatId: OpportunityId
+Type: ‘Meeting’
+CompletedDateTime: [Now]
+Write a Queueable Apex, let’s call it FirstQueueable
+That fetches Opportunity records whose Stage are ‘Prospecting’
+Then update each Opportunity record with the following details
+Stage: ‘Closed Won’
+Description: ‘Closed today: ’ + [Today’s Date]
+Enqueue the SecondQueueable Queueable Apex in it and stores the job Id
+Also, display the job Id
+Invoke FirstQueueable Queueable Apex, and store the Job Id
+display the job Id
+Query for job Ids
+SecondQueueable’s Job Id
+FirstQueueable’s Job Id
 
