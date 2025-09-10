@@ -1,0 +1,755 @@
+Use Case 1: Test Class for Temperature Converter Class 
+Create Class that takes Fahrenheit input as a Decimal and converts it Celsius (Tip: Use  Decimal Celsius = (fh - 32)* 5/9 in your method) 
+Create a test class that tests for the following scenarios  
+Freezing point temp 
+Boiling point 
+Warm temp 
+Negative temp 
+
+Apex Class 
+public class TemperatureConverter { 
+
+  // Takes a Fahrenheit temperature and returns the Celsius equivalent. 
+
+  public static Decimal FahrenheitToCelsius(Decimal fh) { 
+
+    Decimal celsius = (fh - 32) * 5/9; 
+
+    return celsius.setScale(2); 
+
+  } 
+
+} 
+
+Test Class 
+@isTest 
+public class TemperatureConverterTest { 
+    @isTest static void freezingTemp(){ 
+
+        Decimal celsius = TemperatureConverter.FahrenheitToCelsius(32); 
+
+        System.assertEquals(0,celsius); 
+
+    } 
+
+    @isTest static void boilingTemp(){ 
+
+        Decimal celsius = TemperatureConverter.FahrenheitToCelsius(212); 
+
+        System.assertEquals(100,celsius); 
+
+    } 
+
+    @isTest static void warmTemp(){ 
+
+        Decimal celsius = TemperatureConverter.FahrenheitToCelsius(80); 
+
+        System.assertEquals(26.67,celsius); 
+
+    } 
+
+    @isTest static void negativeTemp(){ 
+
+        Decimal celsius = TemperatureConverter.FahrenheitToCelsius(-20); 
+
+        System.assertEquals(-28.89,celsius); 
+
+    } 
+
+} 
+
+ 
+Use Case 2: Test Class for Task Util Class 
+Create a test class that takes leadState as an input parameter and returns the priority of the task  
+returns null if leadState is blank or length of character is more than 2  
+returns ‘High’ if leadState is ‘CA’ 
+else, returns ’Normal’ 
+Create a test class that tests for the following scenarios  
+High  
+Medium 
+Null  
+
+Apex Class 
+public class TaskUtil { 
+    public static String getTaskPriority(String leadState){ 
+        If(String.isBlank(leadState) || leadState.length()>2){ 
+            return null; 
+        } 
+        String taskPriority; 
+        If(leadState == 'CA'){ 
+            taskPriority = 'High'; 
+        } 
+        Else{ 
+            taskPriority = 'Normal'; 
+        } 
+        return taskPriority; 
+    } 
+} 
+
+Test Class 
+@isTest 
+public class TaskUtilTest { 
+
+  
+
+    @isTest static void highPriority(){ 
+
+        String priority = TaskUtil.getTaskPriority('CA'); 
+
+        System.assertEquals('High',priority); 
+
+    } 
+
+    @isTest static void normalPriority(){ 
+
+        String priority = TaskUtil.getTaskPriority('VA'); 
+
+        System.assertEquals('Normal',priority); 
+
+    } 
+
+    @isTest static void longStates(){ 
+
+        String pri = TaskUtil.getTaskPriority('CAL'); 
+
+        System.assertEquals(null,pri); 
+
+    } 
+
+    @isTest static void emptyStrings(){ 
+
+        String pri = TaskUtil.getTaskPriority(''); 
+
+        System.assertEquals(null,pri); 
+
+    } 
+
+} 
+
+ 
+
+OutPut  
+
+——————— 
+
+———————————————————————————————————————————————————————————————— 
+
+ 
+
+Use Case 3: Deny Account with Opportunity Delete 
+
+———————————————————————————— 
+
+* Create a Trigger that prevents the delete of an Account that is associated to an Opportunity record. 
+
+* Write a Test Case that provides 100% coverage 
+
+ 
+
+Apex Trigger 
+
+————————— 
+
+trigger AccountDeletion on Account (before delete) { 
+
+  // Prevent the deletion of accounts if they have related opportunities. 
+
+  for(Account a : [SELECT Id FROM Account 
+
+    WHERE Id IN (SELECT AccountId FROM Opportunity) AND 
+
+    Id IN :Trigger.old]) { 
+
+    Trigger.oldMap.get(a.Id).addError('Cannot delete account with related opportunities.'); 
+
+  } 
+
+} 
+
+ 
+
+Test Class 
+
+————————————————— 
+
+@isTest 
+
+public class TestAccountDeletion { 
+
+  
+
+    @isTest static void DeleteAcctWithOpp(){ 
+
+        Account acct = new Account(Name = 'Test Account'); 
+
+        insert acct; 
+
+        Opportunity opp = new Opportunity( 
+
+        Name = acct.Name + ' Opportunity', 
+
+        StageName = 'Prospecting', 
+
+        CloseDate = System.today().addMonths(1), 
+
+        AccountId = acct.Id); 
+
+        insert opp; 
+
+         
+
+        Test.startTest(); 
+
+        Database.DeleteResult result = Database.delete(acct, false); 
+
+        Test.stopTest(); 
+
+        System.assert(!result.isSuccess()); 
+
+        System.assert(result.getErrors().size()>0); 
+
+        System.assertEquals('Cannot delete account with related opportunities.',result.getErrors()[0].getMessage()); 
+
+    } 
+
+} 
+
+ 
+
+OutPut  
+
+——————— 
+
+———————————————————————————————————————————————————————————————— 
+
+ 
+
+Use Case 4: Create a Unit Test for a Simple Apex Trigger 
+
+————————————————————————————————— 
+
+Create a Unit Test for a Simple Apex Trigger 
+
+Create a simple Apex trigger which blocks inserts and updates to any contact with a last name of 'INVALIDNAME'. You'll copy the code for the class from the Get Ready for the Hands-on Challenge section. Then write unit tests that achieve 100% code coverage. 
+
+Create an Apex trigger on the Contact object 
+
+Name: RestrictContactByName 
+
+Code: Copy from Get Ready for the Hands-on Challenge section above 
+
+Place the unit tests in a separate test class 
+
+Name: TestRestrictContactByName 
+
+Goal: 100% test coverage 
+
+Run your test class at least once 
+
+ 
+
+Apex Class 
+
+————————— 
+
+trigger RestrictContactByName on Contact (before insert, before update) { 
+
+  //check contacts prior to insert or update for invalid data 
+
+  for(Contact c : Trigger.New) { 
+
+    if(c.LastName == 'INVALIDNAME') { 
+
+      //invalidname is invalid 
+
+      c.AddError('The Last Name "'+c.LastName+'" is not allowed for DML'); 
+
+    } 
+
+  } 
+
+} 
+
+ 
+
+ 
+
+ 
+
+Test Class 
+
+————————————————— 
+
+@isTest 
+
+public class TestRestrictContactByName { 
+
+  
+
+    @isTest static void RestrictConName(){ 
+
+        Contact con = new Contact(Lastname ='INVALIDNAME'); 
+
+         
+
+        Test.startTest(); 
+
+        Database.SaveResult res = Database.insert(con,false); 
+
+        Test.stopTest(); 
+
+         
+
+        System.assert(!res.isSuccess()); 
+
+        System.assertEquals('The Last Name "INVALIDNAME" is not allowed for DML',res.getErrors()[0].getMessage()); 
+
+        
+
+    } 
+
+} 
+
+ 
+
+OutPut  
+
+——————— 
+
+——————————————————————————————————————————————————————————————— 
+
+Use Case 5: Create a Contact Test Factory 
+
+———————————————————————————— 
+
+Create a Contact Test Factory 
+
+Create an Apex class that returns a list of contacts based on two incoming parameters: the number of contacts to generate and the last name, which is common to all contacts. Do not insert the generated contact records into the database.  
+
+ 
+
+NOTE: For the purposes of verifying this hands-on challenge, don't specify the @isTest annotation for either the class or the method, even though it's usually required. 
+
+Create an Apex class in the public scope 
+
+Name: RandomContactFactory (without the @isTest annotation) 
+
+Use a Public Static Method to consistently generate contacts with unique first names based on the iterated number in the format Test 0, Test 1, and so on 
+
+Method Name: generateRandomContacts (without the @isTest annotation) 
+
+Parameter 1: An integer that controls the number of contacts being generated with unique first names, such as Test 0 and Test 1 
+
+Parameter 2: A string containing the common last name of the contacts 
+
+Return Type: List<Contact> 
+
+ 
+
+Apex Class 
+
+———————— 
+
+public class RandomContactFactory { 
+
+  
+
+    public static List<Contact> generateRandomContacts(Integer numCon, String lastname){ 
+
+        List<Contact> conList = new list<Contact>(); 
+
+         
+
+        For(Integer i=0; i<numCon; i++){ 
+
+            Contact con = new Contact(); 
+
+            con.FirstName = 'Test '+i; 
+
+            con.LastName = lastname; 
+
+            conList.add(con); 
+
+        } 
+
+        insert conList; 
+
+        return conList; 
+
+    } 
+
+} 
+
+ 
+
+Output 
+
+——————— 
+
+——————————————————————————————————————————————————————————————— 
+
+ 
+
+Use Case 6: Deny Unknown Contact Last Names 
+
+———————————————————————————— 
+
+* Create a Trigger on Contact object that prevents the creation or update a Contact whose Last Name  is ‘Unknown’ 
+
+* Create a Contact test factory for Contact creation and Update with ‘Unknown’ as the Last Name 
+
+* Write a Test Class for all use Cases 
+
+* Test for one Contact creation with ‘Unknown’ as the Last Name 
+
+* Test for 200 Contact creation with ‘Unknown’ as the Last Name 
+
+* Test for one Contact update with ‘Unknown’ as the Last Name 
+
+* Test for 200 Contact update with ‘Unknown’ as the Last Name 
+
+ 
+
+Trigger Code 
+
+——————— 
+
+trigger RestrictContactByName on Contact (before insert, before update) { 
+
+  //check contacts prior to insert or update for invalid data 
+
+  for(Contact c : Trigger.New) { 
+
+    if(c.LastName == 'Unknown') { 
+
+      //invalidname is invalid 
+
+      c.AddError('The Last Name "'+c.LastName+'" is not allowed for DML'); 
+
+    } 
+
+  } 
+
+} 
+
+ 
+
+Test Factory Class 
+
+———————— 
+
+@isTest 
+
+public class RandomContactFactory { 
+
+  
+
+    public static List<Contact> generateRandomContacts(Integer numCon, String lastname){ 
+
+        List<Contact> conList = new list<Contact>(); 
+
+         
+
+        For(Integer i=0; i<numCon; i++){ 
+
+            Contact con = new Contact(); 
+
+            con.FirstName = 'Test '+i; 
+
+            con.LastName = lastname; 
+
+            conList.add(con); 
+
+        } 
+
+        return conList; 
+
+    } 
+
+} 
+
+ 
+
+Apex Test Code 
+
+———————— 
+
+@isTest 
+
+public class TestRestrictContactByName { 
+
+  
+
+    @isTest static void TestRestrictOneConName(){ 
+
+        Contact[] con = RandomContactFactory.generateRandomContacts(1,'Unknown'); 
+
+         
+
+        Test.startTest(); 
+
+        Database.SaveResult res = Database.insert(con[0],false); 
+
+        Test.stopTest(); 
+
+         
+
+        System.assert(!res.isSuccess()); 
+
+        System.assertEquals('The Last Name "Unknown" is not allowed for DML',res.getErrors()[0].getMessage()); 
+
+        
+
+    } 
+
+    @isTest static void TestRestrict200ConName(){ 
+
+        Contact[] con = RandomContactFactory.generateRandomContacts(200,'Unknown'); 
+
+         
+
+        Test.startTest(); 
+
+        Database.SaveResult res = Database.insert(con[25],false); 
+
+        Test.stopTest(); 
+
+         
+
+        System.assert(!res.isSuccess()); 
+
+        System.assertEquals('The Last Name "Unknown" is not allowed for DML',res.getErrors()[0].getMessage()); 
+
+        
+
+    } 
+
+} 
+
+ 
+
+Output 
+
+——————— 
+
+———————————————————————————————————————————————————————————————————————————————————————————————— 
+
+ 
+
+Use Case 7 
+
+—————— 
+
+* Create a Trigger that prevents deletion of an Account that has at least a Opportunity record associated with it 
+
+* Create a Test factory that creates Accounts and associated opportunities  based on integer input materials  
+
+* Write test Cases for the following scenarios 
+
+* Delete an Account without an associated Opportunity 
+
+* Delete 200 Account without any associated Opportunity 
+
+* Delete an Account with an associated Opportunity 
+
+* Delete 200 Account with an associated Opportunity for each 
+
+* Delete 200 Account with 200 associated Opportunity for each 
+
+ 
+
+Trigger Code 
+
+———————————— 
+
+trigger AccountDeletion on Account (before delete) { 
+
+  // Prevent the deletion of accounts if they have related opportunities. 
+
+  for(Account a : [SELECT Id FROM Account 
+
+    WHERE Id IN (SELECT AccountId FROM Opportunity) AND 
+
+    Id IN :Trigger.old]) { 
+
+    Trigger.oldMap.get(a.Id).addError('Cannot delete account with related opportunities.'); 
+
+  } 
+
+} 
+
+ 
+
+AcctWithOpptyCreationFactory 
+
+——————————————— 
+
+@isTest 
+
+public class TestDataFactory { 
+
+  public static List<Account> createAccountsWithOpps(Integer numAccts, Integer numOppsPerAcct) { 
+
+    List<Account> accts = new List<Account>(); 
+
+    for(Integer i=0;i<numAccts;i++) { 
+
+      Account a = new Account(Name='TestAccount' + i); 
+
+      accts.add(a); 
+
+    } 
+
+    insert accts; 
+
+    List<Opportunity> opps = new List<Opportunity>(); 
+
+    for(Integer j=0;j<numAccts;j++) { 
+
+      Account acct = accts[j]; 
+
+      // For each account just inserted, add opportunities 
+
+      for(Integer k=0;k<numOppsPerAcct;k++) { 
+
+        opps.add(new Opportunity(Name=acct.Name + ' Opportunity ' + k, 
+
+          StageName='Prospecting', 
+
+          CloseDate=System.today().addMonths(1), 
+
+          AccountId=acct.Id)); 
+
+      } 
+
+    } 
+
+    // Insert all opportunities for all accounts. 
+
+    insert opps; 
+
+    return accts; 
+
+  } 
+
+} 
+
+ 
+
+Apex Test Class 
+
+————————- 
+
+@isTest 
+
+public class TestAccountWithOppDeletion { 
+
+  
+
+    @isTest static void DeleteOneAcctWithoutOpp(){ 
+
+        List<Account> acct = new List<Account>(); 
+
+        acct = TestDataFactory.createAccountsWithOpps(1,0); 
+
+         
+
+        Test.startTest(); 
+
+        Database.DeleteResult res = Database.delete(acct[0], false); 
+
+        Test.stopTest(); 
+
+        System.assert(res.isSuccess()); 
+
+  
+
+    } 
+
+    @isTest static void Delete200AcctWithoutOpp(){ 
+
+        List<Account> acct = new List<Account>(); 
+
+        acct = TestDataFactory.createAccountsWithOpps(200,0); 
+
+         
+
+        Test.startTest(); 
+
+        Database.DeleteResult res = Database.delete(acct[0], false); 
+
+        Test.stopTest(); 
+
+        System.assert(res.isSuccess()); 
+
+    } 
+
+    @isTest static void DeleteOneAcctWithOneOpp(){ 
+
+        List<Account> acct = TestDataFactory.createAccountsWithOpps(1,1); 
+
+         
+
+        Test.startTest(); 
+
+        Database.DeleteResult res = Database.delete(acct[0], false); 
+
+        Test.stopTest(); 
+
+        System.assert(!res.isSuccess()); 
+
+        System.assert(res.getErrors().size()>0); 
+
+        System.assertEquals('Cannot delete account with related opportunities.',res.getErrors()[0].getMessage());      
+
+    } 
+
+    @isTest static void Delete200AcctWithOneOpp(){ 
+
+        List<Account> acct = TestDataFactory.createAccountsWithOpps(200,1); 
+
+         
+
+        Test.startTest(); 
+
+        Database.DeleteResult res = Database.delete(acct[0], false); 
+
+        Test.stopTest(); 
+
+        System.assert(!res.isSuccess()); 
+
+        System.assert(res.getErrors().size()>0); 
+
+        System.assertEquals('Cannot delete account with related opportunities.',res.getErrors()[0].getMessage());      
+
+    } 
+
+    @isTest static void Delete200AcctWith200Opp(){ 
+
+        List<Account> acct = TestDataFactory.createAccountsWithOpps(200,200); 
+
+         
+
+        Test.startTest(); 
+
+        Database.DeleteResult res = Database.delete(acct[0], false); 
+
+        Test.stopTest(); 
+
+        System.assert(!res.isSuccess()); 
+
+        System.assert(res.getErrors().size()>0); 
+
+        System.assertEquals('Cannot delete account with related opportunities.',res.getErrors()[0].getMessage());      
+
+    } 
+
+} 
+
+Output 
+
+——————— 
+
+ 
+
+———————————————————————————————————————————————————————————————————————————————————————————————— 
