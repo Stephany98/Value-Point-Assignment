@@ -168,3 +168,114 @@ System.debug('I don\'t know the continent of the country in question!!!');
 }
 }
 
+Use Case  20 - Ternary Operator
+——————————————-
+Using Ternary Operator write a code that 
+•	When the temperature is 70 display, ‘It’s a great weather today!!!’
+•	Else, say ‘The weather is horrible today!!!!’
+•	
+Apex Code
+—————-
+Integer temperature = 60 ;
+
+String weather = (temperature == 70) ? 'It is a great weather today!!!':'The weather is horrible today!!!';
+System.debug(weather);
+OutPut
+————
+
+—————————————————————————————————————————————————————————————————
+
+Use Case 21 - Class 1 Assignment
+————————————————
+Write an Apex program to store all the odd numbers in a List starting from 1 until 20. Only numbers stored at even positions in the List should be added to get their sum which should be output to the Debug Log.
+(Hint: Use a while loop and if else along with System.debug()).
+
+
+Apex Code
+—————-
+List<Integer> listofoddnum = new List<Integer>();
+Integer maxnum = 20;
+Integer totalnum = 0;
+
+For (Integer i = 1; i<= maxnum; i++){
+    if(Math.mod(i,2)== 1){
+       listofoddnum.add(i);
+        totalnum = totalnum + i;
+    }
+    
+}
+System.debug(listofoddnum);
+System.debug('Final Sum is '+totalnum);
+OutPut
+———-
+
+————————————————————————————————————————————————————————————————————————————————————————————————————————
+
+Use Case 22 - Bonus: Switch Statement on Location 
+—————————————————————————-
+Write a code using switch statement using the following details 
+1. When location is Miami, display 'Have yourself a warm vacation!!!'
+2. When location is Minnesota, display 'Have yourself a cold weather vacation. Stay warm!!!'
+3. Else, display 'Your weather is known. We hope you enjoy your stay!!!'
+
+Apex Code
+—————-
+String location = 'Miami';
+Switch on location{
+    when 'Miami'{
+        System.debug('Have yourself a warm vacation!!!');
+    }
+    when 'Minnesota'{
+        System.debug('Have yourself a cold weather vacation. Stay warm!!!');
+    }
+    when else{
+        System.debug('Your weather is known. We hope you enjoy your stay!!!');
+    }
+}
+
+OutPut
+————
+
+————————————————————————————————————————————————————————————————————————————————————————————————————————
+
+Use Case 23 - Bonus: Ternary Operation on integers 
+—————————————————————————-
+Write a Ternary statement that display
+* ‘The sum of the numbers is even’ when the sum of two numbers is even
+* ‘The sum of the numbers is odd’ when the sum of two numbers is odd
+
+Apex Code
+——————
+Integer x = 3;
+Integer y = 6;
+
+String res = (Math.mod((x + y),2) ==0)? 'The sum of the numbers is even':'The sum of the numbers is odd';
+System.debug(res);
+
+OutPut
+————
+
+————————————————————————————————————————————————————————————————————————————————————————————————————————
+
+Use Case 24 - Bonus: IF ELSE IF ELSE on Behavior
+—————————————————————————-
+Write an IF ELSE IF ELSE statement that displays 
+* ‘He deserves 100 dollars tip!!!’, when his behavior is nice
+* ‘He deserves 10 dollars tip!!!’, when his behavior is indifferent 
+* ‘He deserves no tip!!!’, when his behavior is awful
+
+Apex Code
+——————
+String behavior = 'Nice';
+If(behavior == 'Nice'){
+    System.debug('He deserves 100 dollars tip!!!');
+}
+Else If(behavior == 'Indifferent'){
+    System.debug('He deserves 10 dollars tip!!!');
+}
+Else If(behavior == 'Awful'){
+    System.debug('He deserves no tip!!!');
+}
+
+OutPut
+————-
