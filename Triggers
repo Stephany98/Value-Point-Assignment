@@ -1,37 +1,32 @@
-APEX TRIGGER BADGE
-—————————————————————————————————————————————
-Use Case 1: Hello World
-————————————————
+APEX TRIGGER
+
+USE CASE 1: Saying Hi
+---
 Write a trigger that says ‘Hi Value Point’  whenever an Account record is created
 
 Trigger Code
-—————————
+---
 trigger VPAccountTrigger on Account (after insert) {
  System.debug('Hi Value Point');
 }
 
 Execute Anonymous Code
-—————————————————
+---
 Account acct = new Account();
 acct.Name = 'Demo Account';
 insert acct;
 
-OutPut
-———————
-13:18:25:182 USER_DEBUG [2]|DEBUG|Hi Value Point
-—————————————————————————————————————————————————————————————
 
-Use Case 2: Account Description Change Display
-——————————————————————————
+USE CASE 2: Account Description Change Display
+---
 Write a trigger that 
 1. displays the Description prior value of an updated Account 
 2. Displays the Description new value of that updated Account
 
 
 Trigger Code
-—————————
+---
 trigger VPAccountTrigger on Account (after update) {
-
     for (Account acc : Trigger.old){
         System.debug('The old description was: '+acc.Description);
     }
@@ -40,8 +35,8 @@ trigger VPAccountTrigger on Account (after update) {
     }
 }
 
-Better
-———————————
+Better Yersion
+---
 trigger VPAccountTrigger on Account (after update) {
 
     for (Account a: Trigger.new) {
@@ -50,10 +45,11 @@ trigger VPAccountTrigger on Account (after update) {
         system.debug ('The current value of ' + a.Name + ' is: ' + a.Description);
     }
 }
-Execute Anonymous Code
-—————————————————
-List<Account> accts = new List<Account>();
 
+Execute Anonymous Code
+---
+List<Account> accts = new List<Account>();
+// Query accounts that had been created with a different description
 accts = [SELECT Id, Name, Description FROM Account WHERE Name Like 'Demo%'];
 System.debug(accts);
 
@@ -65,8 +61,8 @@ For(Account a : accts){
 }
 update accts;
 
-Another Version
-
+Better Version
+---
 List<Account> acctlist = new List<Account>();
 
 for(Integer i = 1; i <= 5; i++){
@@ -83,46 +79,33 @@ For(Account a: acctlist){
 }
 update acctlist;
 
-OutPut
-———————
-13:45:33:099 USER_DEBUG [4]|DEBUG|The old description was: null
-13:45:33:102 USER_DEBUG [7]|DEBUG|The new description is: Needs Attention
-————————————————————————————————————————————————————————————————————————
-
-Use Case 3: Account Description Change Display
-——————————————————————————
+USE CASE 3: Account Description Change Display
+---
 Write a Trigger that updates the description  of an Account record to ‘You create this record: ‘ + the Date/Time now when an Account record is created
 
 Trigger Code
-—————————
+---
 trigger VPAccountTrigger on Account (before insert) {
- 
-    For (Account acc : Trigger.new){
+     For (Account acc : Trigger.new){
         acc.Description = 'You create this record: '+ System.now();
         System.debug('The new description is: '+acc.Description);
     }
- 
-}
+ }
 
 Execute Anonymous Code
-—————————————————
+---
 Account acc = new Account();
 acc.Name = 'Demo Account 6';
 System.debug(acc.Name);
 System.debug(acc.Description);
 insert acc;
 
-OutPut
-———————
-14:11:13:085 USER_DEBUG [5]|DEBUG|The new description is: You create this record: 2025-02-19 13:11:13
-————————————————————————————————————————————————————————————————————————
-
-Use Case 4: Account Creation & Deletion Acknowledgment 
-——————————————————————————
+USE CASE 4: Account Creation & Deletion Acknowledgment 
+---
 Write a Trigger that states the Name, Description and time of creation of an Account. The Trigger should also state the Name, Description and time of deletion of the Account.
 
 Trigger Code
-—————————
+---
 trigger VPAccountTrigger on Account (after insert, before delete) {
  
     If(Trigger.isInsert){
@@ -138,14 +121,11 @@ trigger VPAccountTrigger on Account (after insert, before delete) {
             System.debug('Deleted Account Description is '+acc.Description);
             System.debug('Account Deletion Time is '+System.now());
         }
-    }
-        
-    
-
+    }     
 }
 
 Execute Anonymous Code
-—————————————————
+---
 List<Account> accts = new List<Account>();
 
 For(Integer i = 1; i<= 5; i++){
@@ -165,14 +145,8 @@ acctlist = [SELECT Id, Name FROM Account WHERE Name Like '%Demo%' LIMIT 5];
 delete acctlist;
 System.debug(acctlist.size()+' have been deleted');*/
 
-
-OutPut
-———————
-
-————————————————————————————————————————————————————————————————————————
-
-Use Case 5: Trigger Calls a Class MethodDisplay
-——————————————————————————
+USE CASE 5: Trigger Calls a Class MethodDisplay
+---
 * Write a class with a static method that takes an Account List as an input parameter and returns
 	* ’We are delighted to welcome you to our LLC club’  if the Account Name contains ‘LLC’ and populate the Description with that text
 	* ’We are delighted to welcome you to our Inc club’  if the Account Name contains ‘Inc’ and populate the Description with that text
@@ -180,9 +154,8 @@ Use Case 5: Trigger Calls a Class MethodDisplay
 * Write a Trigger that Invokes the class above and pass the input parameters whenever an Account is created
 
 Apex Code
-—————————
+---
 public class AccountTriggerHandler {
-
     public static void sortAccountClub(List<Account> accts){
         For(Account a : accts){
             If(a.Name.contains('LLC')){
@@ -202,14 +175,13 @@ public class AccountTriggerHandler {
 }
 
 Trigger Code
-—————————
+---
 trigger VPAccountTrigger on Account (before insert) {
- 
     AccountTriggerHandler.sortAccountClub(Trigger.new);
 }
 
 Execute Anonymous Code 1
-—————————————————
+---
 List<Account> accts = new List<Account>();
 
 For(Integer i = 1; i<= 5; i++){
@@ -220,12 +192,8 @@ For(Integer i = 1; i<= 5; i++){
 insert accts;
 System.debug(accts.size()+' have been added');
 
-OutPut 1
-———————
-11:53:34:141 USER_DEBUG [6]|DEBUG|We are delighted to welcome you to our LLC Club
-
 Execute Anonymous Code 2
-—————————————————
+---
 List<Account> accts = new List<Account>();
 
 For(Integer i = 1; i<= 5; i++){
@@ -236,12 +204,8 @@ For(Integer i = 1; i<= 5; i++){
 insert accts;
 System.debug(accts.size()+' have been added');
 
-OutPut 2
-———————
-12:00:02:038 USER_DEBUG [10]|DEBUG|We are delighted to welcome you to our Inc Club
-
 Execute Anonymous Code 3
-—————————————————
+---
 List<Account> accts = new List<Account>();
 
 For(Integer i = 1; i<= 5; i++){
@@ -252,13 +216,8 @@ For(Integer i = 1; i<= 5; i++){
 insert accts;
 System.debug(accts.size()+' have been added');
 
-OutPut 3
-———————
-12:03:57:038 USER_DEBUG [14]|DEBUG|We are working on getting you to the right club
-————————————————————————————————————————————————————————————————————————
-
-Use Case 6: Add Opportunities to Accounts
-——————————————————————————
+USE CASE 6: Add Opportunities to Accounts
+---
 Create a Trigger that fires when an Account is created or updated if it doesn’t have any associated Opportunity, create an Opportunity record it with the following details 
 * Stage 
 * Close Date
@@ -266,9 +225,8 @@ Create a Trigger that fires when an Account is created or updated if it doesn’
 * Opportunity name
 
 Apex Code
-—————————
+---
 public class AccountTriggerHandler {
-
     public static void sortAccountClub(List<Account> accts){
         For(Account a : accts){
             If(a.Name.contains('LLC')){
@@ -302,15 +260,15 @@ public class AccountTriggerHandler {
     }
 }
 Trigger Code
-—————————
+---
 trigger VPAccountTrigger on Account (after insert, after update) {
  
     AccountTriggerHandler.createOpportunity(Trigger.new);
 }
 
 Execute Anonymous Code 
-—————————————————
-For Insert
+---
+//For Insert
 List<Account> accts = new List<Account>();
 
 For(Integer i = 1; i<= 5; i++){
@@ -321,7 +279,7 @@ For(Integer i = 1; i<= 5; i++){
 insert accts;
 System.debug(accts.size()+' have been added');
 
-For Update
+//For Update
 List<Account> accts = new List<Account>();
 
 accts = [SELECT Id, Name FROM Account WHERE Name Like '%Demo%' LIMIT 5];
@@ -332,16 +290,12 @@ For(Account a: accts){
 update accts;
 System.debug(accts.size()+' Accounts have been updated');
 
-OutPut 
-———————
-
-
-Use Case 7: Prevent Account with Opportunity Deletion
-———————————————————————————
+USE CASE 7: Prevent Account with Opportunity Deletion
+---
 Write a Trigger that prevents the deletion of an Account record that has at least one opportunity associated to it.
 
 Trigger Code
-—————————	
+---
 trigger VPAccountTrigger on Account (before delete) {
     List<Opportunity> opps = [SELECT AccountId FROM Opportunity WHERE AccountId IN : Trigger.oldMap.keySet()];
      Set<Id> accIds = new Set<Id>();
@@ -358,7 +312,7 @@ trigger VPAccountTrigger on Account (before delete) {
 }
 
 Execute Anonymous Code 
-—————————————————
+---
 List<Account> accts = new List<Account>();
 
 accts = [SELECT Id, Name FROM Account WHERE Name Like 'Semi%' LIMIT 4];
@@ -366,16 +320,12 @@ accts = [SELECT Id, Name FROM Account WHERE Name Like 'Semi%' LIMIT 4];
 delete accts;
 System.debug(accts.size()+' Accounts cannot be deleted');
 
-OutPut 
-———————
-System.DmlException: Delete failed. First exception on row 0 with id 001d200000JwZvMAAV; first error: FIELD_CUSTOM_VALIDATION_EXCEPTION, This account cannot be deleted: []
-
-Use Case 8: Prevent Duplicate Account Names
-——————————————————————————
+USE CASE 8: Prevent Duplicate Account Names
+---
 Prevent the creation or update of an Account record if it name matches an existing  Account Name.
 
 Trigger Code
-—————————
+---
 trigger VPAccountTrigger on Account (before insert) {
     
     //Create a list of strings to hold all the potential account names in Trigger.new
@@ -402,7 +352,7 @@ trigger VPAccountTrigger on Account (before insert) {
 }
 
  Execute Anonymous Code 
-—————————————————————
+---
 List<Account> accts = new List<Account>();
 
 For(Integer i = 1; i<= 5; i++){
@@ -413,14 +363,8 @@ For(Integer i = 1; i<= 5; i++){
 insert accts;
 System.debug(accts.size()+' have been added');
 
-OutPut 
-———————
-
-Line: 8, Column: 1
-System.DmlException: Insert failed. First exception on row 0; first error: FIELD_CUSTOM_VALIDATION_EXCEPTION, This account name already exists: []
-
-Use Case 9: Match Account Billing Address
-——————————————————————————
+USE CASE 9: Match Account Billing Address
+---
 Create an Apex trigger
 Create an Apex trigger that sets an account’s Shipping Postal Code to match the Billing Postal Code if the Match Billing Address option is selected. Fire the trigger before inserting an account or updating an account.
 Pre-Work:
@@ -428,7 +372,6 @@ Add a checkbox field to the Account object:
 Field Label: Match Billing Address
 Field Name: Match_Billing_Address
 Note: The resulting API Name should be Match_Billing_Address__c.
-
 
 Create an Apex trigger:
 Name: AccountAddressTrigger
@@ -438,7 +381,7 @@ Condition: Match Billing Address is true
 Operation: set the Shipping Postal Code to match the Billing Postal Code
 
 Trigger Code
-—————————
+---
 trigger AccountAddressTrigger on Account (before insert, before update) {
 
     For(Account a : Trigger.new){
@@ -450,7 +393,7 @@ trigger AccountAddressTrigger on Account (before insert, before update) {
 }
 
 Execute Anonymous Code 
-—————————————————————
+---
 For Insert accounts
 List<Account> accts = new List<Account>();
 
@@ -464,7 +407,7 @@ For(Integer i = 1; i<= 5; i++){
 insert accts;
 System.debug(accts.size());
 
-For Update Accounts
+//For Update Accounts
 List<Account> accts = [SELECT Id, Name FROM ACCOUNT WHERE Name Like 'Semi%'];
 
 For(Account acc: accts){
@@ -475,12 +418,12 @@ update accts;
 System.debug(accts.size()+' Accounts have been updated');
 System.debug(accts);
 
-Use Case 10: Add Contacts to Account via Trigger.operationType
-——————————————————————————
+USE CASE 10: Add Contacts to Account via Trigger.operationType
+---
 Write a Trigger that inserts an Contact record to an Account that doesn’t have one upon creation or updates via Trigger.operationType.
  
 Trigger Code
-—————————
+---
 trigger VPAccountTrigger on Account (after insert, after update) {
    List<Account> acctlist = new List<Account>();
    List<Contact> contlist = new List<Contact>();
@@ -511,9 +454,8 @@ trigger VPAccountTrigger on Account (after insert, after update) {
 }
  
 Execute Anonymous Code
-—————————————————
-
-For Insert
+---
+//For Insert
 List<Account> accts = new List<Account>();
 
 For(Integer i = 1; i<= 5; i++){
@@ -524,7 +466,7 @@ For(Integer i = 1; i<= 5; i++){
 insert accts;
 System.debug(accts.size()+' Accounts have been added');
 
-For Update
+//For Update
 List<Account> accts = [SELECT Id, Name FROM ACCOUNT WHERE Name Like 'Semi%'];
 
 For(Account acc: accts){
@@ -534,14 +476,8 @@ update accts;
 System.debug(accts.size()+' Accounts have been updated');
 System.debug(accts);
  
-OutPut
-———————
- 
- 
- 
- 
 Use Case 11: Create a Bulk Apex trigger
-——————————————————————————
+---
 Create a Bulk Apex trigger
 Create a bulkified Apex trigger that adds a follow-up task to an opportunity if its stage is Closed Won. Fire the Apex trigger after inserting or updating an opportunity.
 Create an Apex trigger:
@@ -555,7 +491,7 @@ WhatId: the opportunity ID (associates the task with the opportunity)
 Bulkify the Apex trigger so that it can insert or update 200 or more opportunities
  
 Trigger Code
-—————————
+---
 trigger ClosedOpportunityTrigger on Opportunity (after insert, after update) {
     
     List<Task> tasklist = new List<Task>();
@@ -573,7 +509,7 @@ trigger ClosedOpportunityTrigger on Opportunity (after insert, after update) {
 
  
 Execute Anonymous Code
-—————————————————
+---
 List<Opportunity> oppslist = new List<Opportunity>();
 
 For(Integer i = 1; i<=300; i++){
@@ -585,87 +521,11 @@ For(Integer i = 1; i<=300; i++){
 }
 insert oppslist;
  
-OutPut
-———————
 
 
 
 
 
-
-
-
-
-
-
-
-
-Use Case 7: Prevent Account with Opportunity Deletion
-———————————————————————————
-Write a Trigger that prevents the deletion of an Account record that has at least one opportunity associated to it.
- 
-Use Case 8: Prevent Duplicate  Account Names
-——————————————————————————
-Prevent the creation or update of an Account record if it name matches an existing  Account Name.
- 
-Use Case 9: Match Account Billing Address
-——————————————————————————
-Create an Apex trigger
-Create an Apex trigger that sets an account’s Shipping Postal Code to match the Billing Postal Code if the Match Billing Address option is selected. Fire the trigger before inserting an account or updating an account.
-Pre-Work:
-Add a checkbox field to the Account object:
-Field Label: Match Billing Address
-Field Name: Match_Billing_Address
-Note: The resulting API Name should be Match_Billing_Address__c.
-Create an Apex trigger:
-Name: AccountAddressTrigger
-Object: Account
-Events: before insert and before update
-Condition: Match Billing Address is true
-Operation: set the Shipping Postal Code to match the Billing Postal Code
-
-Use Case 10: Add Contacts to Account via Trigger.operationType
-——————————————————————————
-Write a Trigger that inserts an Contact record to an Account that doesn’t have one upon creation or updates via Trigger.operationType.
- 
-Trigger Code
-—————————
- 
-Execute Anonymous Code
-—————————————————
- 
-OutPut
-———————
- 
- 
- 
- 
-Use Case 11: Create a Bulk Apex trigger
-——————————————————————————
-Create a Bulk Apex trigger
-Create a bulkified Apex trigger that adds a follow-up task to an opportunity if its stage is Closed Won. Fire the Apex trigger after inserting or updating an opportunity.
-Create an Apex trigger:
-Name: ClosedOpportunityTrigger
-Object: Opportunity
-Events: after insert and after update
-Condition: Stage is Closed Won
-Operation: Create a task:
-Subject: Follow Up Test Task
-WhatId: the opportunity ID (associates the task with the opportunity)
-Bulkify the Apex trigger so that it can insert or update 200 or more opportunities
- 
-Trigger Code
-—————————
-
-trigger myAccountHandler on Account (after update) {
-    for (Account a: Trigger.new) {
-        Account aOld = Trigger.oldMap.get(a.id);
-		system.debug ('The prior value of ' + a.Name + ' is: ' + aOld.Description);
-        system.debug ('The current value of ' + a.Name + ' is: ' + a.Description);
-    }
-    
- 
-}
 
 trigger myAccountHandler on Account (after insert, after update) {
   
