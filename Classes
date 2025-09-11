@@ -58,9 +58,57 @@ Enable Field History tracking for all the trackable fields above
 Create 1000 Production Management records via a for loop script with the following details
 Scheduled Start Date: Today
 Description: ‘Urgent production request’
+
 Create and run a Batch Apex job that makes the following updates to Production Management records whose Due Date are blank
 Due Date: Today + 7
 Status: In Progress
+
+public class UpdateProductionManagement implements Database.Batchable<sObject>{
+    public Database.QueryLocator start(Database.BatchableContext bc){
+        return Database.getQueryLocator([SELECT Id, Due_Date__c, Status__c FROM Production_Management__c
+                                        WHERE Due_Date__c = null]); 
+    }
+    public void execute(Database.BatchableContext bc, List<Production_Management__c> scope){
+        List<Production_Management__c> pmList = new List<Production_Management__c>();
+        For(Production_Management__c pm:scope){
+            pm.Due_Date__c = System.today().addDays(7);
+            pm.Status__c = 'In Progress';
+            pmList.add(pm);
+        }
+        update pmList;
+        System.debug(pmList.size() + ' records have been updated');
+    }
+    public void finish(Database.BatchableContext bc){}
+
+}
+Test Class
+@isTest
+public class UpdatePMTest {
+    @testSetup
+    static void createPMrecords(){
+        List<Production_Management__c> newpmList = new List<Production_Management__c>();
+        For (Integer i = 0; i < 10; i++){
+            Production_Management__c pm = new Production_Management__c();
+            pm.Scheduled_Start_Date__c = System.today();
+            pm.Description__c = 'Urgent production request test';
+            newpmList.add(pm);
+        }
+        insert newpmList;
+        System.debug(newpmList.size() +'records has been inserted');
+
+    }
+    @isTest
+    static void testUPMBatchable(){
+        Test.startTest();
+        UpdateProductionManagement upm = new UpdateProductionManagement();
+        Id batchId = Database.executeBatch(upm);
+        Test.stopTest();
+        
+        System.assertEquals(10, [select count() from Production_Management__c
+                                where Description__c Like '%test']);
+    }
+
+}
 
 Use a Batch Class for Bulk processing - Use Case # 2
 Create and run a Batch Apex job that makes the following updates to Production Management records (Created in the above use case) whose Status are ‘In Progress’
@@ -68,10 +116,85 @@ Production Date: Today
 Status: Closed
 The Batch job should also display the number of records processed
 Check the system to see if the number records the Batch job claimed it processed matches those actually updated in the system
+
+public class UpdatePMStatus implements Database.Batchable<sObject>{
+    public Database.QueryLocator start(Database.BatchableContext bc){
+        return Database.getQueryLocator([SELECT Id, Due_Date__c, Status__c FROM Production_Management__c
+                                        WHERE Status__c = 'In Progress']);
+    }
+    public void execute(Database.BatchableContext bc, List<Production_Management__c> scope){
+        List<Production_Management__c> pmList = new List<Production_Management__c>();
+        For(Production_Management__c pm : scope){
+            pm.Production_Date__c = System.today();
+            pm.Status__c = 'Closed';
+            pmList.add(pm);
+        }
+        update pmList;
+        System.debug(pmList.size() + ' records have been updated');
+    }
+    public void finish(Database.BatchableContext bc){}
+
+}
+
+Test Class
+@isTest
+public class UpdatePMStatusTest {
+    @testSetup
+    static void createProductMRecords(){
+        List<Production_Management__c> newpmList = new List<Production_Management__c>();
+        For (Integer i = 0; i < 10; i++){
+            Production_Management__c pm = new Production_Management__c();
+            pm.Scheduled_Start_Date__c = System.today();
+            pm.Description__c = 'Urgent production request test';
+            pm.Due_Date__c = System.today().addDays(7);
+            pm.Status__c = 'In Progress';
+            newpmList.add(pm);
+        }
+        insert newpmList;
+        System.debug(newpmList.size() +'records has been inserted');
+      }
+    @isTest
+    static void testUPMStatusBatchable(){
+        Test.startTest();
+        UpdatePMStatus upms = new UpdatePMStatus();
+        Id batchId = Database.executeBatch(upms);
+        Test.stopTest();
+        
+        System.assertEquals(10, [select count() from Production_Management__c
+                                 WHERE Status__c = 'Closed']);
+    }
+}
  
 Use Schedule Class for Scheduled Processing 
 Write a Scheduled Apex Class that updates all Production Management records’ Description field value to ‘Production complete’. Invoke the Scheduled Job to run at any time.
- 
+
+Batch Class
+public class UpdatePMBatchClass implements Database.Batchable<sObject>{
+    public Database.QueryLocator start(Database.BatchableContext bc){
+        return Database.getQueryLocator([SELECT Id, Description__c, Status__c FROM Production_Management__c
+                                        WHERE Status__c = 'Closed' AND Description__c != 'Production Complete']);
+    }
+    public void execute(Database.BatchableContext bc, List<Production_Management__c> scope){
+        List<Production_Management__c> pmList = new List<Production_Management__c>();
+        For(Production_Management__c pm : scope){
+            pm.Description__c = 'Production Complete';
+            pmList.add(pm);
+        }
+        update pmList;
+    }
+    public void finish(Database.BatchableContext bc){}
+
+}
+
+Schedule Class
+public class SchedulePMUpdate implements Schedulable{
+    public void execute(SchedulableContext sc){
+        UpdatePMBatchClass upm = new UpdatePMBatchClass();
+        Database.executeBatch(upm);
+    }
+
+}
+
 Use Schedule Class to invoke Batch Class
 Write a batch job that runs daily at 9PM local time and searches for the newly created accounts. 
 The job then sums the amount field value on every Opportunity for all the Opportunities and updates it on the respective Pipeline Amount field on the respective parent account record of  those Opportunity
@@ -153,9 +276,21 @@ global class ScheduledUpdateAccountPipelineAmount implements Schedulable {
  
 }
 
+ 
 Use Future Method for Use Case # 1
 Write a Future method which takes a string as input parameter and displays the string prefixed with ‘Hello’. Then invoke the future method and check the output
- 
+
+public class HelloFuture {
+    
+    @future
+    public static void printHello(String name){
+        
+        String greeting = 'Hello '+name;
+        System.debug(greeting);
+    }
+
+}
+
 Use Future Method for Use Case # 2
 Write an Apex Class with the following 3 Future Methods
 Future method # 1:  Takes no argument. Displays the sum of 67 and 53
@@ -166,34 +301,63 @@ Future method # 1
 Future method # 2
 Future method # 3
 Then invoke the future method and check the output
+
+public class FutureClass {
+    @future
+    public static void sumTwoNumbers(){
+        Integer x = 67 + 53;
+        System.debug(x);
+    }
+    @future
+    public static void DisplayText1(){
+        String Text1 = 'This is the 2nd Future method output';
+        System.debug(Text1);
+    }
+    @future
+    public static void DisplayText2(){
+        String Text2 = 'This is the 3nd Future method output. You did it.';
+        System.debug(Text2);
+    }
+    public static void callFutureMethods(){
+        sumTwoNumbers();
+        DisplayText1();
+        DisplayText2();
+    }
+
+}
  
 Use Future Method for Use Case # 3
 Write an Apex Class to update your user record role to ‘CEO’ and update any of your Account records whose Description is null, to read ‘Needs description’. Use @future method in the implementation
 Tip: Use @future method for the Account record update
 
-Hi Stephanie Okeke,
- 
-Here are more use cases for Asynchronous Apex
-Future Methods
- 
-Use Future Method for Use Case # 1
-Write a Future method which takes a string as input parameter and displays the string prefixed with ‘Hello’. Then invoke the future method and check the output
- 
-Use Future Method for Use Case # 2
-Write an Apex Class with the following 3 Future Methods
-Future method # 1:  Takes no argument. Displays the sum of 67 and 53
-Future method # 2: Takes no argument. Displays ‘This is the 2nd Future method output’
-Future method # 3: Takes no argument. Displays ‘This is the 3nd Future method output. You did it.’
-Write another method in the same class that calls the 3 future methods in the order listed below
-Future method # 1
-Future method # 2
-Future method # 3
-Then invoke the future method and check the output
- 
-Use Future Method for Use Case # 3
-Write an Apex Class to update your user record role to ‘CEO’ and update any of your Account records whose Description is null, to read ‘Needs description’. Use @future method in the implementation
-Tip: Use @future method for the Account record update
- 
+public class UserAccountUpdate {
+    
+    public static void UpdateUserRole(){
+        //Get the current user's Id
+        Id CurrentUserId = UserInfo.getUserId();
+        //Get the UserRole for the CEO with its Id
+        UserRole CFO = [SELECT Id FROM UserRole WHERE Name ='CFO'];
+        //Get the User record for the current user
+        User CurrentUser = [SELECT Id, UserRoleId FROM User 
+                            WHERE Id =:CurrentUserId];
+        //Assign the Id of the CEO Role record to the UserRoleId of the current user to update
+        CurrentUser.UserRoleId = CFO.Id;
+        Update CurrentUser;
+        //Query all the current users account records
+        List<Account> acctList = [SELECT Id, Description FROM Account 
+                                  WHERE OwnerId =:CurrentUserId];
+        //An account list for accounts to be updated
+        List<Account> AcctToUpdate = new List<Account>();
+        //
+        For(Account a : acctList){
+            If(a.Description == null){
+                a.Description = 'Needs Description';
+                AcctToUpdate.add(a);
+            }
+        }
+        update AcctToUpdate;
+        System.debug(AcctToUpdate.size()+' Account descriptions have been updated');
+    }
  
 Queueable Apex
 Use Queueable Apex for Use Case # 1
@@ -204,6 +368,33 @@ Invoke the Queueable Apex and store the Job Id.
 Also, display the job Id
 Query for the Status of the queued job
 Inspect the output
+
+public class QueueableContact implements Queueable {
+    
+    public void execute(QueueableContext context){
+        List<Contact> contList = [SELECT Id, Email, Description FROM Contact];
+        List<Contact> conttoUpdate = new List<Contact>();
+        For(Contact c: contList){
+            If(c.Email == null){
+                c.Email = 'missingemail@vp.com';
+            }
+            If(c.Description == null){
+                c.Description = 'New Contact';
+            }
+            conttoUpdate.add(c);
+        }
+        If(conttoUpdate.size()>=1){
+            Update conttoUpdate;
+            System.debug(conttoUpdate.size() + ' contacts have been updated');
+        }
+        
+    }
+    /* QueueableContact qc = new QueueableContact();
+Id jobId = System.enqueueJob(qc);
+System.debug('Queueable Job ID is '+jobID);*/
+     
+
+}
  
 Use Queueable Apex for Use Case # 2
 Write a Queueable Apex, let’s call it SecondQueueable
@@ -215,6 +406,32 @@ Description: ‘Closed due to ’  +  [Opportunity Name] + ‘ closure.’
 WhatId: OpportunityId
 Type: ‘Meeting’
 CompletedDateTime: [Now]
+
+public class SecondQueueable implements Queueable{
+    
+    public void execute(QueueableContext context){
+        List<Opportunity> opplist = [SELECT Id, Name, StageName, Description FROM Opportunity
+                                    WHERE StageName = 'Closed Won'];
+        List<Task> taskList = new List<Task>();
+        For(Opportunity opp :oppList){
+            Task t = new Task();
+            t.Subject = opp.Name +'Task';
+            t.Status = 'Completed';
+            t.Description = 'Closed due to '+ opp.Name + 'closure';
+            t.WhatId = opp.Id;
+            t.Type = 'Meeting';
+            //t.CompletedDateTime = System.now(); Not writeable error
+            taskList.add(t); 
+        }
+        
+        If(!taskList.isEmpty()){
+            insert taskList;
+        }
+        
+    }
+
+}
+
 Write a Queueable Apex, let’s call it FirstQueueable
 That fetches Opportunity records whose Stage are ‘Prospecting’
 Then update each Opportunity record with the following details
@@ -228,3 +445,27 @@ Query for job Ids
 SecondQueueable’s Job Id
 FirstQueueable’s Job Id
 
+public class FirstQueueable implements Queueable{
+    
+    public void execute(QueueableContext context){
+        List<Opportunity> opps = [SELECT Id, Name, StageName, Description 
+                                 FROM Opportunity 
+                                 WHERE StageName = 'Prospecting'];
+        List<Opportunity> opplist = new List<Opportunity>();
+        For(Opportunity opp : opps){
+            opp.StageName = 'Closed Won';
+            opp.Description = 'Closed today ' + System.today();
+            opplist.add(opp);
+        }
+        If(!opplist.isEmpty()){
+        update opplist;
+        }
+        SecondQueueable sq = new SecondQueueable();
+        Id sjobid = System.enqueueJob(sq);
+        System.debug('Second queueable job with job id :'+ sjobid);
+    }
+    /*FirstQueueable fc = new FirstQueueable();
+Id jobId = System.enqueueJob(fc);
+System.debug('Queueable Job ID is '+jobID);*/
+
+}
